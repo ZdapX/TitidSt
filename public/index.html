@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StalkTok — Modern TikTok Stalker</title>
+    <title>TikTok Stalker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -20,20 +20,14 @@
 </head>
 <body class="antialiased selection:bg-zinc-700 selection:text-white">
 
-    <!-- Header Section -->
-    <nav class="max-w-5xl mx-auto px-6 py-8 flex justify-between items-center">
-        <h1 class="text-xl font-bold tracking-tighter">STALK<span class="text-zinc-500">TOK</span></h1>
-        <div class="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold border border-zinc-800 px-2 py-1 rounded">v2.0 Stable</div>
-    </nav>
-
-    <main class="max-w-5xl mx-auto px-6 pb-20">
+    <main class="max-w-5xl mx-auto px-6 py-16">
         <!-- Search Section -->
         <div class="max-w-xl mb-16">
             <h2 class="text-4xl font-semibold mb-4 tracking-tight">Cari akun TikTok.</h2>
-            <p class="text-zinc-400 mb-8 leading-relaxed">Masukkan username untuk melihat statistik profil dan mengunduh video terbaru tanpa watermark.</p>
+            <p class="text-zinc-400 mb-8 leading-relaxed text-sm">Masukkan username untuk melihat statistik profil dan mengunduh video tanpa watermark.</p>
             
             <div class="flex flex-col sm:flex-row gap-3">
-                <input type="text" id="username" placeholder="username" 
+                <input type="text" id="username" placeholder="Masukkan username..." 
                     class="input-field flex-1 px-4 py-3 rounded-md text-sm">
                 <button onclick="doStalk()" id="btnSearch" class="btn-primary px-8 py-3 rounded-md font-bold text-sm uppercase tracking-tight">
                     Analyze
@@ -68,15 +62,15 @@
 
                     <div class="grid grid-cols-3 gap-4 border-t border-zinc-800 pt-6">
                         <div>
-                            <p class="text-[10px] uppercase text-zinc-500 font-bold mb-1">Followers</p>
+                            <p class="text-[10px] uppercase text-zinc-500 font-bold mb-1 tracking-wider">Followers</p>
                             <span id="followers" class="text-xl font-semibold">0</span>
                         </div>
                         <div>
-                            <p class="text-[10px] uppercase text-zinc-500 font-bold mb-1">Following</p>
+                            <p class="text-[10px] uppercase text-zinc-500 font-bold mb-1 tracking-wider">Following</p>
                             <span id="following" class="text-xl font-semibold">0</span>
                         </div>
                         <div>
-                            <p class="text-[10px] uppercase text-zinc-500 font-bold mb-1">Total Likes</p>
+                            <p class="text-[10px] uppercase text-zinc-500 font-bold mb-1 tracking-wider">Total Likes</p>
                             <span id="likes" class="text-xl font-semibold">0</span>
                         </div>
                     </div>
@@ -85,17 +79,12 @@
 
             <!-- Videos Grid -->
             <div>
-                <h3 class="text-sm font-bold uppercase tracking-[0.2em] text-zinc-500 mb-6">Recent Uploads</h3>
                 <div id="videoGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     <!-- Video Cards -->
                 </div>
             </div>
         </div>
     </main>
-
-    <footer class="max-w-5xl mx-auto px-6 py-10 border-t border-zinc-900 text-zinc-600 text-[11px] uppercase tracking-widest text-center md:text-left">
-        &copy; 2024 AgungDevX &bull; Powered by TikWM
-    </footer>
 
     <script>
         function formatNumber(num) {
@@ -128,7 +117,7 @@
                     document.getElementById('avatar').src = res.user.avatar;
                     document.getElementById('nickname').innerText = res.user.nickname;
                     document.getElementById('user_id').innerText = '@' + res.user.username;
-                    document.getElementById('bio').innerText = res.user.bio;
+                    document.getElementById('bio').innerText = res.user.bio || '';
                     document.getElementById('followers').innerText = formatNumber(res.user.followers);
                     document.getElementById('following').innerText = formatNumber(res.user.following);
                     document.getElementById('likes').innerText = formatNumber(res.user.likes);
@@ -136,23 +125,23 @@
                     const grid = document.getElementById('videoGrid');
                     grid.innerHTML = '';
                     
-                    if(res.videos.length === 0) {
-                        grid.innerHTML = `<p class="col-span-full text-zinc-500 italic py-10 text-center">Tidak ada video publik ditemukan.</p>`;
-                    }
-
-                    res.videos.forEach(v => {
-                        grid.innerHTML += `
-                            <div class="group relative card overflow-hidden rounded-lg">
-                                <img src="${v.cover}" class="w-full aspect-[3/4] object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300">
-                                <div class="absolute inset-0 flex flex-col justify-end p-4 bg-black/20 group-hover:bg-black/40 transition-all">
-                                    <a href="${v.downloadUrl}" target="_blank" 
-                                       class="bg-white text-black text-[10px] font-bold py-2 rounded uppercase tracking-tighter text-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                                        Download No WM
-                                    </a>
+                    if(!res.videos || res.videos.length === 0) {
+                        grid.innerHTML = `<p class="col-span-full text-zinc-500 italic py-10 text-center">Tidak ada video ditemukan.</p>`;
+                    } else {
+                        res.videos.forEach(v => {
+                            grid.innerHTML += `
+                                <div class="group relative card overflow-hidden rounded-lg">
+                                    <img src="${v.cover}" class="w-full aspect-[3/4] object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+                                    <div class="absolute inset-0 flex flex-col justify-end p-4 bg-black/20 group-hover:bg-black/40 transition-all">
+                                        <a href="${v.downloadUrl}" target="_blank" 
+                                           class="bg-white text-black text-[10px] font-bold py-2 rounded uppercase tracking-tighter text-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                                            Download No WM
+                                        </a>
+                                    </div>
                                 </div>
-                            </div>
-                        `;
-                    });
+                            `;
+                        });
+                    }
 
                     resultDiv.classList.remove('hidden');
                 } else {
@@ -167,7 +156,6 @@
             }
         }
 
-        // Support Enter Key
         document.getElementById("username").addEventListener("keyup", function(event) {
             if (event.key === "Enter") {
                 doStalk();
