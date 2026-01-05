@@ -126,7 +126,7 @@
                     grid.innerHTML = '';
                     
                     if(!res.videos || res.videos.length === 0) {
-                        grid.innerHTML = `<p class="col-span-full text-zinc-500 italic py-10 text-center">Tidak ada video ditemukan.</p>`;
+                        grid.innerHTML = `<p class="col-span-full text-zinc-500 italic py-10 text-center">._.</p>`;
                     } else {
                         res.videos.forEach(v => {
                             grid.innerHTML += `
