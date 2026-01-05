@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Stalker - AgungDevX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); }
+        body { background: #0f172a; color: white; }
+    </style>
+</head>
+<body class="min-h-screen p-5">
+    <div class="max-w-2xl mx-auto text-center mt-10">
+        <h1 class="text-4xl font-bold mb-5 text-pink-500">TikTok Stalker</h1>
+        <div class="flex gap-2">
+            <input type="text" id="username" placeholder="Masukkan username (tanpa @)..." 
+                class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-pink-500">
+            <button onclick="doStalk()" id="btnSearch" class="bg-pink-600 px-6 py-3 rounded-lg font-bold hover:bg-pink-700 transition">Cari</button>
+        </div>
+    </div>
+
+    <div id="loading" class="hidden text-center mt-10">Sabar mang, keur ditalungtik...</div>
+
+    <div id="result" class="hidden max-w-4xl mx-auto mt-10">
+        <!-- Profile Card -->
+        <div class="glass p-6 rounded-2xl border border-gray-700 flex flex-col md:flex-row items-center gap-6">
+            <img id="avatar" src="" class="w-32 h-32 rounded-full border-4 border-pink-500 shadow-xl">
+            <div class="text-center md:text-left">
+                <h2 id="nickname" class="text-2xl font-bold"></h2>
+                <p id="user_id" class="text-gray-400">@username</p>
+                <div class="flex gap-5 mt-4 text-sm">
+                    <div><b id="followers">0</b> <p class="text-gray-400">Followers</p></div>
+                    <div><b id="following">0</b> <p class="text-gray-400">Following</p></div>
+                    <div><b id="likes">0</b> <p class="text-gray-400">Likes</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Videos Grid -->
+        <div id="videoGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-10">
+            <!-- Video item di sini -->
+        </div>
+    </div>
+
+    <script>
+        async function doStalk() {
+            const user = document.getElementById('username').value;
+            const btn = document.getElementById('btnSearch');
+            const resultDiv = document.getElementById('result');
+            const loading = document.getElementById('loading');
+
+            if(!user) return alert('Username-na mana, mang?');
+
+            btn.disabled = true;
+            loading.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch(`/api/stalk?user=${user}`);
+                const data = await response.json();
+
+                if(data.success) {
+                    const res = data.result;
+                    document.getElementById('avatar').src = res.user.avatar;
+                    document.getElementById('nickname').innerText = res.user.nickname;
+                    document.getElementById('user_id').innerText = '@' + res.user.username;
+                    document.getElementById('followers').innerText = res.user.followers;
+                    document.getElementById('following').innerText = res.user.following;
+                    document.getElementById('likes').innerText = res.user.likes;
+
+                    const grid = document.getElementById('videoGrid');
+                    grid.innerHTML = '';
+                    res.videos.forEach(v => {
+                        grid.innerHTML += `
+                            <div class="relative group overflow-hidden rounded-xl">
+                                <img src="${v.cover}" class="w-full aspect-[3/4] object-cover">
+                                <a href="${v.downloadUrl}" target="_blank" class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                                    <span class="bg-white text-black px-3 py-1 rounded-full text-xs font-bold">Download</span>
+                                </a>
+                            </div>
+                        `;
+                    });
+
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    alert('Gagal: ' + data.message);
+                }
+            } catch (e) {
+                alert('Error server!');
+            } finally {
+                btn.disabled = false;
+                loading.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
