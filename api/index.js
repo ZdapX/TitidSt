@@ -7,48 +7,26 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const TokStalk = {
-    config: {
-        baseUrl: "https://tokviewer.net/api",
-        headers: {
-            'accept': 'application/json, text/plain, */*',
-            'accept-language': 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
-            'content-type': 'application/json',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'origin': 'https://tokviewer.net',
-            'referer': 'https://tokviewer.net/',
-            'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-            'sec-fetch-dest': 'empty',
-            'sec-fetch-mode': 'cors',
-            'sec-fetch-site': 'same-origin'
-        }
-    },
-
+const TikTokStalk = {
     stalk: async (username) => {
         try {
-            if (!username) return { status: 400, success: false, message: "Username-na mana, mang?" };
-
-            // 1. Candak Data Profil
-            const profileRes = await axios.post(`${TokStalk.config.baseUrl}/check-profile`, 
-                { username: username.replace('@', '') }, 
-                { 
-                    headers: TokStalk.config.headers,
-                    timeout: 8000 // Set timeout 8 detik agar tidak kena limit Vercel
+            const cleanUser = username.replace('@', '');
+            
+            // Menggunakan API TikWM karena lebih kebal terhadap Cloudflare
+            const response = await axios.get(`https://www.tikwm.com/api/user/info?unique_id=${cleanUser}`, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
                 }
-            );
+            });
 
-            const profile = profileRes.data;
-            if (!profile || profile.status !== 200 || !profile.data) {
-                return { status: 404, success: false, message: "Profil teu kapanggih atawa TokViewer keur error." };
+            const data = response.data;
+
+            if (data.code !== 0 || !data.data) {
+                return { status: 404, success: false, message: "User tidak ditemukan atau API Limit." };
             }
 
-            // 2. Candak Data Video
-            const videoRes = await axios.post(`${TokStalk.config.baseUrl}/video`, 
-                { username: username.replace('@', ''), offset: 0, limit: 12 }, 
-                { headers: TokStalk.config.headers, timeout: 8000 }
-            );
-
-            const videos = videoRes.data;
+            const user = data.data.user;
+            const stats = data.data.stats;
 
             return {
                 status: 200,
@@ -56,43 +34,59 @@ const TokStalk = {
                 owners: "AgungDevX",
                 result: {
                     user: {
-                        username: username,
-                        nickname: profile.data.nickname || username,
-                        avatar: profile.data.avatar,
-                        followers: profile.data.followers,
-                        following: profile.data.following,
-                        likes: profile.data.likes,
-                        bio: profile.data.signature || ""
+                        username: user.uniqueId,
+                        nickname: user.nickname,
+                        avatar: user.avatarLarger || user.avatarMedium,
+                        followers: stats.followerCount,
+                        following: stats.followingCount,
+                        likes: stats.heartCount,
+                        bio: user.signature || "No Bio"
                     },
-                    videos: (videos.data || []).map(v => ({
-                        cover: v.cover,
-                        downloadUrl: v.downloadUrl,
-                        type: v.downloadUrl?.includes('.mp3') ? 'music/photo_mode' : 'video'
-                    }))
+                    // Mengambil video terbaru (TikWM memberikan list video di endpoint posts)
+                    videos: [] // Kita butuh fetch kedua untuk video
                 }
             };
-
         } catch (err) {
-            console.error("Error Stalk:", err.response?.data || err.message);
-            return {
-                status: 500,
-                success: false,
-                message: err.response?.data?.message || err.message || "Server TokViewer Rungsing"
-            };
+            return { status: 500, success: false, message: err.message };
+        }
+    },
+
+    getVideos: async (username) => {
+        try {
+            const cleanUser = username.replace('@', '');
+            const response = await axios.get(`https://www.tikwm.com/api/user/posts?unique_id=${cleanUser}`, {
+                headers: { 'User-Agent': 'Mozilla/5.0' }
+            });
+            
+            if (response.data.code === 0 && response.data.data.videos) {
+                return response.data.data.videos.slice(0, 12).map(v => ({
+                    cover: v.cover,
+                    downloadUrl: v.play, // Video tanpa watermark
+                    type: 'video'
+                }));
+            }
+            return [];
+        } catch {
+            return [];
         }
     }
 };
 
-// Endpoint API
 app.get('/api/stalk', async (req, res) => {
-    try {
-        const username = req.query.user;
-        if (!username) return res.status(400).json({ success: false, message: "Isi username di query ?user=" });
-        
-        const result = await TokStalk.stalk(username);
-        res.status(result.status).json(result);
-    } catch (e) {
-        res.status(500).json({ success: false, message: "Internal Crash: " + e.message });
+    const user = req.query.user;
+    if (!user) return res.status(400).json({ success: false, message: "Isi username!" });
+
+    // Jalankan info profil dan video secara paralel agar cepat
+    const [profileData, videoData] = await Promise.all([
+        TikTokStalk.stalk(user),
+        TikTokStalk.getVideos(user)
+    ]);
+
+    if (profileData.success) {
+        profileData.result.videos = videoData;
+        res.status(200).json(profileData);
+    } else {
+        res.status(profileData.status).json(profileData);
     }
 });
 
