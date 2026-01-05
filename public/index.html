@@ -3,56 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Stalker - AgungDevX</title>
+    <title>StalkTok — Modern TikTok Stalker</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); }
-        body { background: #0f172a; color: white; }
+        body { font-family: 'Inter', sans-serif; background-color: #09090b; color: #fafafa; }
+        .card { background-color: #18181b; border: 1px solid #27272a; }
+        .input-field { background-color: #09090b; border: 1px solid #27272a; transition: all 0.2s; }
+        .input-field:focus { border-color: #3f3f46; outline: none; }
+        .btn-primary { background-color: #fafafa; color: #09090b; transition: all 0.2s; }
+        .btn-primary:hover { background-color: #e4e4e7; }
+        .btn-primary:disabled { background-color: #27272a; color: #52525b; }
+        .skeleton { background-color: #27272a; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
     </style>
 </head>
-<body class="min-h-screen p-5">
-    <div class="max-w-2xl mx-auto text-center mt-10">
-        <h1 class="text-4xl font-bold mb-5 text-pink-500">TikTok Stalker</h1>
-        <div class="flex gap-2">
-            <input type="text" id="username" placeholder="Masukkan username (tanpa @)..." 
-                class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-pink-500">
-            <button onclick="doStalk()" id="btnSearch" class="bg-pink-600 px-6 py-3 rounded-lg font-bold hover:bg-pink-700 transition">Cari</button>
+<body class="antialiased selection:bg-zinc-700 selection:text-white">
+
+    <!-- Header Section -->
+    <nav class="max-w-5xl mx-auto px-6 py-8 flex justify-between items-center">
+        <h1 class="text-xl font-bold tracking-tighter">STALK<span class="text-zinc-500">TOK</span></h1>
+        <div class="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold border border-zinc-800 px-2 py-1 rounded">v2.0 Stable</div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-6 pb-20">
+        <!-- Search Section -->
+        <div class="max-w-xl mb-16">
+            <h2 class="text-4xl font-semibold mb-4 tracking-tight">Cari akun TikTok.</h2>
+            <p class="text-zinc-400 mb-8 leading-relaxed">Masukkan username untuk melihat statistik profil dan mengunduh video terbaru tanpa watermark.</p>
+            
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input type="text" id="username" placeholder="username" 
+                    class="input-field flex-1 px-4 py-3 rounded-md text-sm">
+                <button onclick="doStalk()" id="btnSearch" class="btn-primary px-8 py-3 rounded-md font-bold text-sm uppercase tracking-tight">
+                    Analyze
+                </button>
+            </div>
         </div>
-    </div>
 
-    <div id="loading" class="hidden text-center mt-10">Sabar mang, keur ditalungtik...</div>
-
-    <div id="result" class="hidden max-w-4xl mx-auto mt-10">
-        <!-- Profile Card -->
-        <div class="glass p-6 rounded-2xl border border-gray-700 flex flex-col md:flex-row items-center gap-6">
-            <img id="avatar" src="" class="w-32 h-32 rounded-full border-4 border-pink-500 shadow-xl">
-            <div class="text-center md:text-left">
-                <h2 id="nickname" class="text-2xl font-bold"></h2>
-                <p id="user_id" class="text-gray-400">@username</p>
-                <div class="flex gap-5 mt-4 text-sm">
-                    <div><b id="followers">0</b> <p class="text-gray-400">Followers</p></div>
-                    <div><b id="following">0</b> <p class="text-gray-400">Following</p></div>
-                    <div><b id="likes">0</b> <p class="text-gray-400">Likes</p></div>
+        <!-- Loading State -->
+        <div id="loading" class="hidden space-y-8">
+            <div class="card p-8 rounded-xl flex items-center gap-6">
+                <div class="w-24 h-24 rounded-full skeleton"></div>
+                <div class="space-y-3">
+                    <div class="h-6 w-48 skeleton rounded"></div>
+                    <div class="h-4 w-32 skeleton rounded"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Videos Grid -->
-        <div id="videoGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-10">
-            <!-- Video item di sini -->
+        <!-- Result Section -->
+        <div id="result" class="hidden space-y-12">
+            <!-- Profile Card -->
+            <div class="card p-8 rounded-2xl flex flex-col md:flex-row items-center md:items-start gap-8">
+                <img id="avatar" src="" class="w-32 h-32 rounded-full border-4 border-zinc-800 object-cover shadow-2xl">
+                
+                <div class="flex-1 text-center md:text-left">
+                    <div class="mb-4">
+                        <h2 id="nickname" class="text-3xl font-bold tracking-tight"></h2>
+                        <p id="user_id" class="text-zinc-500 font-medium"></p>
+                    </div>
+                    
+                    <p id="bio" class="text-zinc-400 text-sm max-w-md mb-6 leading-relaxed"></p>
+
+                    <div class="grid grid-cols-3 gap-4 border-t border-zinc-800 pt-6">
+                        <div>
+                            <p class="text-[10px] uppercase text-zinc-500 font-bold mb-1">Followers</p>
+                            <span id="followers" class="text-xl font-semibold">0</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase text-zinc-500 font-bold mb-1">Following</p>
+                            <span id="following" class="text-xl font-semibold">0</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase text-zinc-500 font-bold mb-1">Total Likes</p>
+                            <span id="likes" class="text-xl font-semibold">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Videos Grid -->
+            <div>
+                <h3 class="text-sm font-bold uppercase tracking-[0.2em] text-zinc-500 mb-6">Recent Uploads</h3>
+                <div id="videoGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- Video Cards -->
+                </div>
+            </div>
         </div>
-    </div>
+    </main>
+
+    <footer class="max-w-5xl mx-auto px-6 py-10 border-t border-zinc-900 text-zinc-600 text-[11px] uppercase tracking-widest text-center md:text-left">
+        &copy; 2024 AgungDevX &bull; Powered by TikWM
+    </footer>
 
     <script>
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num;
+        }
+
         async function doStalk() {
-            const user = document.getElementById('username').value;
+            const userInput = document.getElementById('username');
+            const user = userInput.value.trim();
             const btn = document.getElementById('btnSearch');
             const resultDiv = document.getElementById('result');
             const loading = document.getElementById('loading');
 
-            if(!user) return alert('Username-na mana, mang?');
+            if(!user) return;
 
+            // UI Reset
             btn.disabled = true;
+            btn.innerText = 'Analyzing...';
             loading.classList.remove('hidden');
             resultDiv.classList.add('hidden');
 
@@ -65,34 +128,51 @@
                     document.getElementById('avatar').src = res.user.avatar;
                     document.getElementById('nickname').innerText = res.user.nickname;
                     document.getElementById('user_id').innerText = '@' + res.user.username;
-                    document.getElementById('followers').innerText = res.user.followers;
-                    document.getElementById('following').innerText = res.user.following;
-                    document.getElementById('likes').innerText = res.user.likes;
+                    document.getElementById('bio').innerText = res.user.bio;
+                    document.getElementById('followers').innerText = formatNumber(res.user.followers);
+                    document.getElementById('following').innerText = formatNumber(res.user.following);
+                    document.getElementById('likes').innerText = formatNumber(res.user.likes);
 
                     const grid = document.getElementById('videoGrid');
                     grid.innerHTML = '';
+                    
+                    if(res.videos.length === 0) {
+                        grid.innerHTML = `<p class="col-span-full text-zinc-500 italic py-10 text-center">Tidak ada video publik ditemukan.</p>`;
+                    }
+
                     res.videos.forEach(v => {
                         grid.innerHTML += `
-                            <div class="relative group overflow-hidden rounded-xl">
-                                <img src="${v.cover}" class="w-full aspect-[3/4] object-cover">
-                                <a href="${v.downloadUrl}" target="_blank" class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
-                                    <span class="bg-white text-black px-3 py-1 rounded-full text-xs font-bold">Download</span>
-                                </a>
+                            <div class="group relative card overflow-hidden rounded-lg">
+                                <img src="${v.cover}" class="w-full aspect-[3/4] object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+                                <div class="absolute inset-0 flex flex-col justify-end p-4 bg-black/20 group-hover:bg-black/40 transition-all">
+                                    <a href="${v.downloadUrl}" target="_blank" 
+                                       class="bg-white text-black text-[10px] font-bold py-2 rounded uppercase tracking-tighter text-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                                        Download No WM
+                                    </a>
+                                </div>
                             </div>
                         `;
                     });
 
                     resultDiv.classList.remove('hidden');
                 } else {
-                    alert('Gagal: ' + data.message);
+                    alert('Error: ' + data.message);
                 }
             } catch (e) {
-                alert('Error server!');
+                alert('Server sedang rungsing, coba lagi nanti.');
             } finally {
                 btn.disabled = false;
+                btn.innerText = 'Analyze';
                 loading.classList.add('hidden');
             }
         }
+
+        // Support Enter Key
+        document.getElementById("username").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                doStalk();
+            }
+        });
     </script>
 </body>
 </html>
